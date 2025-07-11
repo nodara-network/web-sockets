@@ -1,10 +1,9 @@
+import { PrismaClient } from "@prisma/client";
 import { PublicKey } from "@solana/web3.js";
 import "dotenv/config";
 import { parse } from "url";
 import { WebSocketServer } from "ws";
-import { PrismaClient } from "./generated/prisma";
 import socketManager, { User } from "./services/SocketManager";
-import { redis } from "./cache/redis";
 
 const PORT = Number(process.env.PORT) || 3000;
 
