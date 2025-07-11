@@ -1,0 +1,3 @@
+export const ONLINE_USERS = "ONLINE_USERS";
+export const CONNECTED = "CONNECTED";
+export const USER_DISCONNECTED = "USER_DISCONNECTED";

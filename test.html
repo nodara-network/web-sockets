@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Sticky WebSocket Test</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6f8;
+      padding: 2rem;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      color: #444;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    input[type="text"] {
+      width: calc(100% - 1rem);
+      padding: 0.5rem;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+
+    button {
+      margin: 0.25rem;
+      padding: 0.6rem 1.2rem;
+      font-size: 0.95rem;
+      border: none;
+      border-radius: 6px;
+      background-color: #4a90e2;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #357ab8;
+    }
+
+    #heartbeat {
+      font-size: 2rem;
+      text-align: center;
+      margin: 1rem 0;
+      opacity: 0.3;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+
+    #heartbeat.beat {
+      transform: scale(1.3);
+      opacity: 1;
+    }
+
+    pre {
+      background: #111;
+      color: #0f0;
+      padding: 1rem;
+      height: 200px;
+      overflow-y: auto;
+      border-radius: 8px;
+      font-family: monospace;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>WebSocket Test</h1>
+    <input type="text" id="publicKey" placeholder="Enter your publicKey" />
+    <div>
+      <button onclick="connect()">Connect</button>
+      <button onclick="disconnect()">Disconnect</button>
+      <button onclick="reconnect()">Reconnect</button>
+    </div>
+    <div id="heartbeat">❤️</div>
+    <pre id="log"></pre>
+  </div>
+
+  <script>
+    let socket;
+    let publicKey = '';
+    let heartbeatInterval;
+
+    function log(msg) {
+      const logEl = document.getElementById('log');
+      logEl.textContent += msg + '\n';
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    function beatHeart() {
+      const heart = document.getElementById('heartbeat');
+      heart.classList.add('beat');
+      setTimeout(() => heart.classList.remove('beat'), 300);
+    }
+
+    function connect() {
+      publicKey = document.getElementById('publicKey').value.trim();
+      if (!publicKey) return alert('Enter publicKey');
+
+      const url = `ws://localhost:3001/?publicKey=${encodeURIComponent(publicKey)}`;
+      socket = new WebSocket(url);
+
+      socket.onopen = () => {
+        log(`[OPEN] Connected`);
+        heartbeatInterval = setInterval(() => {
+          if (socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify({ type: 'HEARTBEAT' }));
+            log('[HEARTBEAT] Sent');
+            beatHeart();
+          }
+        }, 5000);
+      };
+
+      socket.onmessage = (event) => {
+        log(`[MESSAGE] ${event.data}`);
+      };
+
+      socket.onclose = () => {
+        log('[CLOSED]');
+        clearInterval(heartbeatInterval);
+      };
+
+      socket.onerror = (event) => {
+        log('[ERROR] WebSocket encountered an error');
+        console.error(event);
+      };
+    }
+
+    function disconnect() {
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.close();
+        log('[ACTION] Disconnected manually');
+      }
+    }
+
+    function reconnect() {
+      log('[ACTION] Attempting reconnect...');
+      connect();
+    }
+  </script>
+</body>
+
+</html>
