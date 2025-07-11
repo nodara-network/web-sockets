@@ -1,252 +1,405 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
-  <title>Sticky System Tester</title>
+  <title>Nodara System Uplink</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --bg-color: #0d1117;
+      --container-bg: #161b22;
+      --border-color: #2a3b4c;
+      --text-color: #e6edf3;
+      --accent-color-light: #6aaaf5;
+      --accent-color-dark: #3a7bd5;
+      --button-bg: var(--accent-color-dark);
+      --button-hover: #2e6bbd;
+      --log-bg: #010409;
+      --log-text: #00ff00;
+      --input-bg: #0d1117;
+      --input-border: #30363d;
+    }
+
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f4f6f8;
-      padding: 2rem;
-      color: #333;
+      font-family: 'Orbitron', sans-serif;
+      background: var(--bg-color);
+      color: var(--text-color);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    body::before, body::after {
+      content: '';
+      position: absolute;
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--accent-color-dark) 0%, rgba(0,0,0,0) 70%);
+      opacity: 0.1;
+      filter: blur(50px);
+      z-index: 0;
+    }
+
+    body::before {
+      top: 10%;
+      left: 5%;
+    }
+
+    body::after {
+      bottom: 10%;
+      right: 5%;
     }
 
     h1 {
       text-align: center;
-      color: #444;
+      color: var(--accent-color-light);
+      text-shadow: 0 0 15px var(--accent-color-dark);
+      margin-bottom: 2rem;
+      font-weight: 700;
+      letter-spacing: 2px;
     }
 
     .container {
-      max-width: 700px;
+      max-width: 750px;
       margin: 0 auto;
-      background: #fff;
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      background: var(--container-bg);
+      padding: 2.5rem;
+      border-radius: 16px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border-color);
+      position: relative;
+      z-index: 1;
+      animation: fadeIn 1s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     input,
     button {
-      padding: 0.5rem;
-      font-size: 1rem;
-      margin: 0.25rem;
-      border-radius: 6px;
+      padding: 0.8rem 1.2rem;
+      font-size: 0.95rem;
+      margin: 0.4rem 0;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      font-family: 'Share Tech Mono', monospace;
+      color: var(--text-color);
     }
 
     input {
       width: 100%;
-      border: 1px solid #ccc;
+      border: 1px solid var(--input-border);
+      background-color: var(--input-bg);
+      box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--accent-color-light);
+      box-shadow: 0 0 0 2px rgba(106, 170, 245, 0.3);
     }
 
     button {
       border: none;
-      background-color: #4a90e2;
-      color: white;
+      background-color: var(--button-bg);
       cursor: pointer;
-      transition: background 0.3s;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     }
 
     button:hover {
-      background-color: #357ab8;
+      background-color: var(--button-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
     }
 
-    #heartbeat {
-      font-size: 2rem;
+    button:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    #pulseIndicator {
+      font-size: 2.8rem;
       text-align: center;
-      margin: 1rem 0;
-      opacity: 0.3;
-      transition: transform 0.3s ease, opacity 0.3s ease;
+      margin: 1.5rem 0;
+      opacity: 0.4;
+      transition: transform 0.3s ease, opacity 0.3s ease, color 0.3s ease;
+      color: var(--accent-color-light);
+      text-shadow: 0 0 10px var(--accent-color-dark);
+      font-family: 'Orbitron', sans-serif;
     }
 
-    #heartbeat.beat {
-      transform: scale(1.3);
+    #pulseIndicator.active-pulse {
+      transform: scale(1.1);
       opacity: 1;
+      color: #39ff14; /* Neo green for active pulse */
+      text-shadow: 0 0 15px #39ff14, 0 0 25px rgba(57, 255, 20, 0.6);
+      animation: pulseGlow 1.5s infinite alternate;
+    }
+
+    @keyframes pulseGlow {
+      from { text-shadow: 0 0 10px #39ff14, 0 0 20px rgba(57, 255, 20, 0.4); }
+      to { text-shadow: 0 0 20px #39ff14, 0 0 30px rgba(57, 255, 20, 0.8); }
     }
 
     pre {
-      background: #111;
-      color: #0f0;
-      padding: 1rem;
-      height: 250px;
+      background: var(--log-bg);
+      color: var(--log-text);
+      padding: 1.2rem;
+      height: 280px;
       overflow-y: auto;
-      border-radius: 8px;
-      font-family: monospace;
+      border-radius: 10px;
+      font-family: 'Share Tech Mono', monospace;
+      border: 1px solid var(--border-color);
+      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+      line-height: 1.4;
+      white-space: pre-wrap; /* Ensures long lines wrap */
+      word-break: break-all; /* Breaks words if necessary to prevent overflow */
     }
 
     .row {
       display: flex;
-      gap: 0.5rem;
+      gap: 1rem;
       flex-wrap: wrap;
+      margin-bottom: 1rem;
     }
 
     .row > * {
+      flex: 1 1 0; /* Allows items to shrink and grow, but maintain some base size */
+      min-width: 150px; /* Ensures buttons don't get too small */
+    }
+
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .button-group button {
       flex: 1 1 auto;
+      min-width: 120px;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .container {
+        padding: 1.5rem;
+        margin: 1rem;
+      }
+      h1 {
+        font-size: 1.8rem;
+      }
+      .row {
+        flex-direction: column;
+        gap: 0.8rem;
+      }
+      .button-group {
+        flex-direction: column;
+        gap: 0.8rem;
+      }
+      input, button {
+        margin: 0;
+      }
     }
   </style>
 </head>
-
 <body>
   <div class="container">
-    <h1>Sticky System Tester</h1>
+    <h1><span style="color: #39ff14;">NODARA</span> NETWORK</h1>
 
     <div class="row">
-      <input type="text" id="publicKey" placeholder="Enter publicKey (base58)" />
-      <input type="text" id="uptimeUrl" placeholder="Uptime URL (e.g. https://example.com)" />
+      <input type="text" id="publicKey" placeholder="[ACCESS KEY] Enter publicKey (base58)" />
+      <input type="text" id="uptimeUrl" placeholder="[ENDPOINT] Uptime URL (e.g. https://example.com)" />
     </div>
 
-    <div class="row">
-      <button onclick="connect()">Connect</button>
-      <button onclick="disconnect()">Disconnect</button>
-      <button onclick="reconnect()">Reconnect</button>
+    <div class="button-group">
+      <button onclick="connect()">⚡ INITIATE CONNECTION</button>
+      <button onclick="disconnect()">🔴 TERMINATE CONNECTION</button>
+      <button onclick="reconnect()">🔄 RE-ESTABLISH LINK</button>
     </div>
 
-    <div class="row">
-      <button onclick="registerWorker()">Register Worker</button>
-      <button onclick="workerPing()">Worker Ping</button>
-      <button onclick="sendTaskResult()">Send Task Result</button>
-      <button onclick="postUptime()">POST /v1/uptime</button>
+    <div class="button-group">
+      <button onclick="registerWorker()">⚙️ REGISTER UNIT</button>
+      <button onclick="workerPing()">📡 UNIT BEACON</button>
+      <button onclick="sendTaskResult()">✅ SUBMIT TASK DATA</button>
+      <button onclick="postUptime()">⬆️ UPLINK UPTIME REPORT</button>
     </div>
 
-    <div id="heartbeat">❤️</div>
+    <div id="pulseIndicator">🟢</div>
     <pre id="log"></pre>
   </div>
 
   <script>
     let socket;
-    let heartbeatInterval;
+    let pulseInterval; // Changed from heartbeatInterval
 
     function log(msg) {
       const logEl = document.getElementById('log');
-      logEl.textContent += msg + '\n';
+      logEl.textContent += `[${new Date().toLocaleTimeString()}] ${msg}\n`;
       logEl.scrollTop = logEl.scrollHeight;
     }
 
-    function beatHeart() {
-      const heart = document.getElementById('heartbeat');
-      heart.classList.add('beat');
-      setTimeout(() => heart.classList.remove('beat'), 300);
+    function activatePulse() { // Changed from beatHeart
+      const pulse = document.getElementById('pulseIndicator');
+      pulse.classList.add('active-pulse');
+      // No explicit timeout to remove, as it will be controlled by the interval
+    }
+
+    function deactivatePulse() {
+        const pulse = document.getElementById('pulseIndicator');
+        pulse.classList.remove('active-pulse');
     }
 
     function connect() {
       const publicKey = document.getElementById('publicKey').value.trim();
-      if (!publicKey) return alert('Enter publicKey');
+      if (!publicKey) return alert('ACCESS KEY REQUIRED: Please enter your publicKey to establish connection.');
 
       const url = `wss://ws.nodara.network?publicKey=${encodeURIComponent(publicKey)}`;
       socket = new WebSocket(url);
 
+      log(`[STATUS] Attempting connection to ${url}...`);
+
       socket.onopen = () => {
-        log(`[OPEN] Connected`);
-        heartbeatInterval = setInterval(() => {
+        log(`[STATUS] CONNECTION ESTABLISHED. Initiating data stream.`);
+        deactivatePulse(); // Ensure it's not active before starting interval
+        pulseInterval = setInterval(() => {
           if (socket.readyState === WebSocket.OPEN) {
             socket.send(JSON.stringify({ type: 'HEARTBEAT' }));
-            log('[HEARTBEAT] Sent');
-            beatHeart();
+            log('[TX] Sending HELLO_PING packet...'); // More sci-fi sounding
+            activatePulse(); // Activate the pulse on send
+            setTimeout(() => deactivatePulse(), 500); // Briefly deactivate after sending
           }
-        }, 5000);
+        }, 5000); // Ping every 5 seconds
       };
 
       socket.onmessage = (event) => {
-        log(`[MESSAGE] ${event.data}`);
+        log(`[RX] Incoming data: ${event.data}`); // More sci-fi sounding
       };
 
       socket.onclose = () => {
-        log('[CLOSED]');
-        clearInterval(heartbeatInterval);
+        log('[STATUS] CONNECTION TERMINATED.');
+        clearInterval(pulseInterval);
+        deactivatePulse(); // Ensure pulse is off when closed
       };
 
       socket.onerror = (event) => {
-        log('[ERROR] WebSocket encountered an error');
+        log('[ERROR] NETWORK INTERRUPT: WebSocket encountered an error.');
         console.error(event);
+        clearInterval(pulseInterval);
+        deactivatePulse();
       };
     }
 
     function disconnect() {
       if (socket && socket.readyState === WebSocket.OPEN) {
         socket.close();
-        log('[ACTION] Disconnected manually');
+        log('[ACTION] Manual disconnection initiated.');
+      } else {
+        log('[STATUS] No active connection to disconnect.');
       }
     }
 
     function reconnect() {
-      log('[ACTION] Attempting reconnect...');
-      connect();
+      log('[ACTION] Attempting link re-establishment...');
+      disconnect(); // Ensure clean slate
+      setTimeout(connect, 500); // Give a small delay before reconnecting
     }
 
     function registerWorker() {
-      if (!socket || socket.readyState !== WebSocket.OPEN) return alert("Not connected");
+      if (!socket || socket.readyState !== WebSocket.OPEN) return alert("CONNECTION REQUIRED: Please connect to the network first.");
       socket.send(JSON.stringify({
         type: "REGISTER_WORKER",
         payload: {
           deviceInfo: {
             os: "web",
-            browser: "tester",
-            version: "1.0"
+            browser: "nodara-tester",
+            version: "1.0-alpha"
           }
         }
       }));
-      log("[ACTION] Sent REGISTER_WORKER");
+      log("[TX] Sending REGISTER_WORKER packet...");
     }
 
     function workerPing() {
-      if (!socket || socket.readyState !== WebSocket.OPEN) return alert("Not connected");
+      if (!socket || socket.readyState !== WebSocket.OPEN) return alert("CONNECTION REQUIRED: Please connect to the network first.");
       socket.send(JSON.stringify({
         type: "WORKER_PING",
         payload: {
           isAvailable: true
         }
       }));
-      log("[ACTION] Sent WORKER_PING");
+      log("[TX] Sending WORKER_PING packet...");
     }
 
     function sendTaskResult() {
-      if (!socket || socket.readyState !== WebSocket.OPEN) return alert("Not connected");
-      const fakeSubtaskId = "demo_task_1234_worker_abc";
+      if (!socket || socket.readyState !== WebSocket.OPEN) return alert("CONNECTION REQUIRED: Please connect to the network first.");
+      const fakeSubtaskId = `TASK_ID_${Math.random().toString(36).substring(2, 11).toUpperCase()}`; // More dynamic ID
       const resultPayload = {
-        success: true,
-        latencyMs: 123,
+        success: Math.random() > 0.2, // Simulate some failures
+        latencyMs: Math.floor(Math.random() * 500) + 50, // Random latency
         statusCode: 200,
         timestamp: new Date().toISOString()
       };
 
       socket.send(JSON.stringify({
-        type: TASK_RESULT,
+        type: "TASK_RESULT", // Changed from undeclared TASK_RESULT
         payload: {
           subtaskId: fakeSubtaskId,
           result: resultPayload
         }
       }));
 
-      log(`[ACTION] Sent TASK_RESULT for ${fakeSubtaskId}`);
+      log(`[TX] Submitting TASK_RESULT for ${fakeSubtaskId}... Status: ${resultPayload.success ? 'SUCCESS' : 'FAILURE'}`);
     }
 
     async function postUptime() {
       const url = document.getElementById('uptimeUrl').value.trim();
       const publicKey = document.getElementById('publicKey').value.trim();
 
-      if (!url || !publicKey) return alert("Fill both publicKey and URL");
+      if (!url || !publicKey) return alert("INPUT ERROR: Both publicKey (ACCESS KEY) and Uptime URL (ENDPOINT) are required.");
+
+      const body = {
+        txnId: `TXN_ID_${Math.random().toString(36).substring(2, 11).toUpperCase()}`, // Dynamic TXN ID
+        creatorWallet: publicKey,
+        url,
+        rewardLamports: "100000",
+        maxResponses: 3
+      };
+      
+      log(`[HTTP] Initiating POST request to /v1/uptime...`);
 
       try {
         const response = await fetch("https://api.nodara.network/v1/uptime", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            txnId: "demo_txn_123",
-            creatorWallet: publicKey,
-            url,
-            rewardLamports: "100000",
-            maxResponses: 3
-          })
+          body: JSON.stringify(body)
         });
 
-        const data = await response.json();
-        log(`[HTTP] POST /v1/uptime → ${JSON.stringify(data)}`);
+        const contentType = response.headers.get("content-type") || "";
+        if (!response.ok) {
+          const text = await response.text();
+          log(`[HTTP ERROR] Status: ${response.status} - ${text || 'Unknown Error'}`);
+        } else if (contentType.includes("application/json")) {
+          const data = await response.json();
+          log(`[HTTP] POST /v1/uptime RESPONSE: ${JSON.stringify(data, null, 2)}`); // Pretty print JSON
+        } else {
+          log(`[HTTP WARNING] Unexpected response type from /v1/uptime: ${contentType}`);
+        }
       } catch (err) {
         console.error(err);
-        log(`[HTTP ERROR] ${err.message}`);
+        log(`[HTTP CRITICAL] Network request failed: ${err.message}`);
       }
     }
   </script>
 </body>
-
 </html>
