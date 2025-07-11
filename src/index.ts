@@ -1,12 +1,15 @@
-import "dotenv/config";
-import { WebSocketServer } from "ws";
-import socketManager, { User } from "./services/SocketManager";
-import { parse } from "url";
 import { PublicKey } from "@solana/web3.js";
+import "dotenv/config";
+import { parse } from "url";
+import { WebSocketServer } from "ws";
+import { PrismaClient } from "./generated/prisma";
+import socketManager, { User } from "./services/SocketManager";
+import { redis } from "./cache/redis";
 
 const PORT = Number(process.env.PORT) || 3000;
 
 const wss = new WebSocketServer({ port: PORT, host: "0.0.0.0" });
+export const prismaClient = new PrismaClient();
 
 wss.on("connection", (ws: WebSocket, req) => {
   try {
@@ -33,7 +36,7 @@ wss.on("connection", (ws: WebSocket, req) => {
   } catch (err) {
     try {
       ws.close(1011, "Internal server error");
-    } catch (_) {}
+    } catch (_) { }
   }
 });
 

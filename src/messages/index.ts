@@ -1,3 +1,11 @@
 export const ONLINE_USERS = "ONLINE_USERS";
 export const CONNECTED = "CONNECTED";
 export const USER_DISCONNECTED = "USER_DISCONNECTED";
+export const PING = "PING";
+export const PONG = "PONG";
+export const HEARTBEAT = "HEARTBEAT";
+export const REGISTER_WORKER = "REGISTER_WORKER";
+export const WORKER_PING = "WORKER_PING";
+export const NEW_TASK = "NEW_TASK";
+export const TASK_RESULT = "TASK_RESULT";
+export const REGISTRATION_SUCCESS = "REGISTRATION_SUCCESS";

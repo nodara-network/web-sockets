@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <title>Sticky WebSocket Test</title>
+  <title>Sticky System Tester</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -18,7 +18,7 @@
     }
 
     .container {
-      max-width: 600px;
+      max-width: 700px;
       margin: 0 auto;
       background: #fff;
       padding: 2rem;
@@ -26,25 +26,25 @@
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
     }
 
-    input[type="text"] {
-      width: calc(100% - 1rem);
+    input,
+    button {
       padding: 0.5rem;
       font-size: 1rem;
-      margin-bottom: 1rem;
+      margin: 0.25rem;
+      border-radius: 6px;
+    }
+
+    input {
+      width: 100%;
       border: 1px solid #ccc;
-      border-radius: 8px;
     }
 
     button {
-      margin: 0.25rem;
-      padding: 0.6rem 1.2rem;
-      font-size: 0.95rem;
       border: none;
-      border-radius: 6px;
       background-color: #4a90e2;
       color: white;
       cursor: pointer;
-      transition: background-color 0.3s;
+      transition: background 0.3s;
     }
 
     button:hover {
@@ -68,30 +68,52 @@
       background: #111;
       color: #0f0;
       padding: 1rem;
-      height: 200px;
+      height: 250px;
       overflow-y: auto;
       border-radius: 8px;
       font-family: monospace;
+    }
+
+    .row {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .row > * {
+      flex: 1 1 auto;
     }
   </style>
 </head>
 
 <body>
   <div class="container">
-    <h1>WebSocket Test</h1>
-    <input type="text" id="publicKey" placeholder="Enter your publicKey" />
-    <div>
+    <h1>Sticky System Tester</h1>
+
+    <div class="row">
+      <input type="text" id="publicKey" placeholder="Enter publicKey (base58)" />
+      <input type="text" id="uptimeUrl" placeholder="Uptime URL (e.g. https://example.com)" />
+    </div>
+
+    <div class="row">
       <button onclick="connect()">Connect</button>
       <button onclick="disconnect()">Disconnect</button>
       <button onclick="reconnect()">Reconnect</button>
     </div>
+
+    <div class="row">
+      <button onclick="registerWorker()">Register Worker</button>
+      <button onclick="workerPing()">Worker Ping</button>
+      <button onclick="sendTaskResult()">Send Task Result</button>
+      <button onclick="postUptime()">POST /v1/uptime</button>
+    </div>
+
     <div id="heartbeat">❤️</div>
     <pre id="log"></pre>
   </div>
 
   <script>
     let socket;
-    let publicKey = '';
     let heartbeatInterval;
 
     function log(msg) {
@@ -107,10 +129,10 @@
     }
 
     function connect() {
-      publicKey = document.getElementById('publicKey').value.trim();
+      const publicKey = document.getElementById('publicKey').value.trim();
       if (!publicKey) return alert('Enter publicKey');
 
-      const url = `ws://localhost:3001/?publicKey=${encodeURIComponent(publicKey)}`;
+      const url = `wss://ws.nodara.network?publicKey=${encodeURIComponent(publicKey)}`;
       socket = new WebSocket(url);
 
       socket.onopen = () => {
@@ -149,6 +171,80 @@
     function reconnect() {
       log('[ACTION] Attempting reconnect...');
       connect();
+    }
+
+    function registerWorker() {
+      if (!socket || socket.readyState !== WebSocket.OPEN) return alert("Not connected");
+      socket.send(JSON.stringify({
+        type: "REGISTER_WORKER",
+        payload: {
+          deviceInfo: {
+            os: "web",
+            browser: "tester",
+            version: "1.0"
+          }
+        }
+      }));
+      log("[ACTION] Sent REGISTER_WORKER");
+    }
+
+    function workerPing() {
+      if (!socket || socket.readyState !== WebSocket.OPEN) return alert("Not connected");
+      socket.send(JSON.stringify({
+        type: "WORKER_PING",
+        payload: {
+          isAvailable: true
+        }
+      }));
+      log("[ACTION] Sent WORKER_PING");
+    }
+
+    function sendTaskResult() {
+      if (!socket || socket.readyState !== WebSocket.OPEN) return alert("Not connected");
+      const fakeSubtaskId = "demo_task_1234_worker_abc";
+      const resultPayload = {
+        success: true,
+        latencyMs: 123,
+        statusCode: 200,
+        timestamp: new Date().toISOString()
+      };
+
+      socket.send(JSON.stringify({
+        type: TASK_RESULT,
+        payload: {
+          subtaskId: fakeSubtaskId,
+          result: resultPayload
+        }
+      }));
+
+      log(`[ACTION] Sent TASK_RESULT for ${fakeSubtaskId}`);
+    }
+
+    async function postUptime() {
+      const url = document.getElementById('uptimeUrl').value.trim();
+      const publicKey = document.getElementById('publicKey').value.trim();
+
+      if (!url || !publicKey) return alert("Fill both publicKey and URL");
+
+      try {
+        const response = await fetch("https://api.nodara.network/v1/uptime", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            txnId: "demo_txn_123",
+            creatorWallet: publicKey,
+            url,
+            rewardLamports: "100000",
+            maxResponses: 3
+          })
+        });
+
+        const data = await response.json();
+        log(`[HTTP] POST /v1/uptime → ${JSON.stringify(data)}`);
+      } catch (err) {
+        console.error(err);
+        log(`[HTTP ERROR] ${err.message}`);
+      }
     }
   </script>
 </body>
